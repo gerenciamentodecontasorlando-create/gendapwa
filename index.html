@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Agenda BTX</title>
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#070b14" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <style>
+    :root{
+      --bg:#070b14;
+      --panel:#0b1224;
+      --panel2:#0a1020;
+      --line:rgba(130,170,255,.18);
+      --line2:rgba(130,170,255,.28);
+      --txt:#eaf1ff;
+      --muted:rgba(234,241,255,.70);
+      --accent:#63a7ff;
+      --accent2:#2f6bff;
+      --good:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+
+      --r:16px;
+      --shadow: 0 10px 35px rgba(0,0,0,.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(1000px 600px at 20% 10%, rgba(99,167,255,.10), transparent 55%),
+        radial-gradient(900px 600px at 85% 20%, rgba(47,107,255,.08), transparent 55%),
+        radial-gradient(900px 600px at 50% 95%, rgba(99,167,255,.08), transparent 60%),
+        linear-gradient(180deg, #050812 0%, #060914 55%, #040610 100%);
+      color:var(--txt);
+      overflow:hidden;
+    }
+
+    .topbar{
+      height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(11,18,36,.92), rgba(10,16,32,.75));
+      backdrop-filter: blur(10px);
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+
+    .brand{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width: 220px;
+    }
+    .logo{
+      width:34px;height:34px;border-radius:12px;
+      background:
+        radial-gradient(12px 12px at 30% 30%, rgba(234,241,255,.55), transparent 60%),
+        linear-gradient(135deg, rgba(99,167,255,.95), rgba(47,107,255,.55));
+      box-shadow: 0 8px 22px rgba(47,107,255,.22);
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .brand h1{
+      font-size:16px; margin:0; letter-spacing:.3px;
+      line-height:1.05;
+    }
+    .brand .sub{
+      font-size:12px;color:var(--muted); margin-top:2px;
+      font-family:var(--mono);
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    button, .btn{
+      appearance:none;
+      border:1px solid var(--line2);
+      color:var(--txt);
+      background: rgba(8,12,25,.65);
+      padding:9px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      transition: transform .06s ease, border-color .2s ease, background .2s ease;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:hover{border-color:rgba(99,167,255,.55)}
+    button:active{transform: translateY(1px)}
+    .primary{
+      background: linear-gradient(135deg, rgba(99,167,255,.25), rgba(47,107,255,.18));
+      border-color: rgba(99,167,255,.55);
+    }
+    .danger{border-color: rgba(251,113,133,.55)}
+    .good{border-color: rgba(52,211,153,.55)}
+    .mutedBtn{opacity:.9}
+
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(8,12,25,.35);
+      color:var(--muted);
+      font-size:12px;
+      font-family:var(--mono);
+      white-space:nowrap;
+    }
+
+    .wrap{
+      height: calc(100% - 64px);
+      display:grid;
+      grid-template-rows: 1fr 320px;
+      gap:12px;
+      padding:12px;
+      max-width:1400px;
+      margin:0 auto;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(11,18,36,.85), rgba(10,16,32,.70));
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height:0;
+    }
+
+    .editorHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 12px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+    }
+    .editorHead .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .dateLine{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .dateTitle{
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    .small{
+      color:var(--muted);
+      font-size:12px;
+      font-family:var(--mono);
+    }
+    .status{
+      font-size:12px;
+      font-family:var(--mono);
+      color: var(--muted);
+    }
+    .status.ok{color: rgba(52,211,153,.9)}
+    .status.warn{color: rgba(251,191,36,.95)}
+    .status.bad{color: rgba(251,113,133,.95)}
+
+    .editorBody{
+      height: calc(100% - 58px);
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      min-height:0;
+    }
+
+    .noteArea{
+      padding:12px;
+      border-right:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      gap:10px;
+    }
+    textarea{
+      width:100%;
+      height:100%;
+      min-height:0;
+      resize:none;
+      outline:none;
+      border-radius:14px;
+      border:1px solid rgba(99,167,255,.20);
+      background: rgba(5,8,18,.55);
+      color:var(--txt);
+      padding:14px;
+      line-height:1.45;
+      font-size:14px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+    }
+
+    .side{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      gap:10px;
+    }
+    .boxTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .boxTitle h2{
+      margin:0;
+      font-size:13px;
+      letter-spacing:.25px;
+    }
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      font-family:var(--mono);
+    }
+
+    .attachList{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(5,8,18,.35);
+      overflow:auto;
+      min-height:0;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .attachItem{
+      border:1px solid rgba(99,167,255,.18);
+      border-radius:14px;
+      padding:10px;
+      background: rgba(8,12,25,.40);
+      display:grid;
+      grid-template-columns: 54px 1fr auto;
+      gap:10px;
+      align-items:center;
+    }
+    .thumb{
+      width:54px;height:54px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    .thumb img{width:100%;height:100%;object-fit:cover}
+    .meta{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .meta .name{
+      font-size:13px;
+      font-weight:650;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .meta .type{
+      font-size:12px;
+      color:var(--muted);
+      font-family:var(--mono);
+    }
+    .iconBtn{
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px;
+    }
+
+    .bottom{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:12px;
+      min-height:0;
+    }
+
+    .notesPanelHead{
+      padding:12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background: rgba(0,0,0,.10);
+    }
+    .notesPanelHead h2{margin:0;font-size:13px;letter-spacing:.25px}
+    .search{
+      display:flex; gap:8px; align-items:center;
+      min-width:0;
+    }
+    input[type="search"]{
+      width: 260px;
+      max-width: 48vw;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(99,167,255,.22);
+      background: rgba(5,8,18,.45);
+      color: var(--txt);
+      outline:none;
+      font-size:13px;
+    }
+
+    .notesList{
+      height: calc(100% - 52px);
+      overflow:auto;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .noteCard{
+      border:1px solid rgba(99,167,255,.18);
+      border-radius:14px;
+      background: rgba(8,12,25,.35);
+      padding:12px;
+      cursor:pointer;
+      transition: border-color .15s ease, transform .06s ease;
+    }
+    .noteCard:hover{border-color:rgba(99,167,255,.40)}
+    .noteCard:active{transform: translateY(1px)}
+    .noteCard .row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      margin-bottom:6px;
+    }
+    .noteCard .d{
+      font-family:var(--mono);
+      font-size:12px;
+      color: rgba(234,241,255,.85);
+    }
+    .noteCard .tag{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(99,167,255,.95);
+      border:1px solid rgba(99,167,255,.28);
+      padding:5px 8px;
+      border-radius:999px;
+      background: rgba(99,167,255,.08);
+      white-space:nowrap;
+    }
+    .noteCard .preview{
+      font-size:13px;
+      color: var(--muted);
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      line-height:1.35;
+    }
+
+    .calHead{
+      padding:12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: rgba(0,0,0,.10);
+    }
+    .calHead .month{
+      font-weight:750;
+      letter-spacing:.2px;
+      font-size:13px;
+    }
+    .calGrid{
+      height: calc(100% - 52px);
+      padding:12px;
+      display:grid;
+      grid-template-rows: auto 1fr;
+      gap:10px;
+      min-height:0;
+    }
+    .dow{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:6px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size:11px;
+    }
+    .days{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:6px;
+      min-height:0;
+      overflow:auto;
+      padding-right:2px;
+    }
+    .day{
+      border:1px solid rgba(99,167,255,.14);
+      background: rgba(8,12,25,.28);
+      border-radius:12px;
+      padding:10px 8px;
+      cursor:pointer;
+      min-height:52px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:8px;
+      transition: border-color .15s ease, transform .06s ease, background .15s ease;
+    }
+    .day:hover{border-color:rgba(99,167,255,.35)}
+    .day:active{transform: translateY(1px)}
+    .day .n{
+      font-family:var(--mono);
+      font-size:12px;
+      color: rgba(234,241,255,.9);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:99px;
+      background: rgba(99,167,255,.85);
+      box-shadow: 0 0 0 3px rgba(99,167,255,.12);
+      flex:0 0 auto;
+    }
+    .day.muted{
+      opacity:.45;
+      filter:saturate(.9);
+    }
+    .day.sel{
+      border-color: rgba(99,167,255,.65);
+      background: rgba(99,167,255,.10);
+    }
+
+    @media (max-width: 980px){
+      body{overflow:auto}
+      .wrap{height:auto; min-height: calc(100% - 64px); grid-template-rows: auto auto}
+      .editorBody{grid-template-columns: 1fr}
+      .noteArea{border-right:none; border-bottom:1px solid var(--line)}
+      .bottom{grid-template-columns: 1fr}
+    }
+
+    @media print{
+      body{
+        background:#fff !important;
+        color:#000 !important;
+        overflow:visible !important;
+      }
+      .topbar, .bottom, .panel:not(#printPanel){display:none !important;}
+      #printPanel{
+        display:block !important;
+        border:none !important;
+        box-shadow:none !important;
+        background:#fff !important;
+      }
+      .printWrap{
+        padding: 10mm 10mm 12mm 10mm;
+      }
+      .printTitle{
+        font-size:16pt;
+        font-weight:800;
+        margin:0 0 8px 0;
+      }
+      .printMeta{
+        font-family: var(--mono);
+        font-size:10pt;
+        margin-bottom:10px;
+        color:#333;
+      }
+      .printNote{
+        border:1px solid #111;
+        padding:10px;
+        border-radius:10px;
+        white-space:pre-wrap;
+        word-break:break-word;
+        font-size:11.5pt;
+        line-height:1.4;
+        min-height: 90mm;
+      }
+      .printAtt{
+        margin-top:10px;
+        border:1px solid #111;
+        border-radius:10px;
+        padding:8px;
+      }
+      .printAtt h3{
+        margin:0 0 6px 0;
+        font-size:11pt;
+      }
+      .attRow{
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+      }
+      .attMini{
+        width: 32mm;
+        border:1px solid #666;
+        border-radius:8px;
+        padding:6px;
+        font-size:9pt;
+        overflow:hidden;
+      }
+      .attMini img{
+        width:100%;
+        height: 22mm;
+        object-fit:cover;
+        border-radius:6px;
+        border:1px solid #bbb;
+        display:block;
+        margin-bottom:6px;
+      }
+      .attMini .fn{
+        font-family: var(--mono);
+        font-size:8.5pt;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      }
+      .noPrintNote{
+        font-family: var(--mono);
+        color:#666;
+        font-size:10pt;
+      }
+      @page { margin: 10mm; }
+    }
+
+    input[type="file"]{display:none}
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>Agenda BTX</h1>
+        <div class="sub">offline • memória • anexos • backup</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <span id="autosavePill" class="pill">autosave: ligado</span>
+      <button class="primary" id="btnSave">💾 Salvar</button>
+      <button class="good" id="btnAttach">📎 Anexar</button>
+      <button id="btnPrint">🖨️ Imprimir</button>
+      <button id="btnExport">⬇️ Exportar backup</button>
+      <button id="btnImport">⬆️ Importar backup</button>
+      <button class="danger" id="btnClearDay">🧨 Limpar dia</button>
+      <button class="primary" id="btnInstall" style="display:none;">⬇️ Instalar</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel" id="editorPanel">
+      <div class="editorHead">
+        <div class="left">
+          <div class="dateLine">
+            <div class="dateTitle" id="dateTitle">Dia selecionado</div>
+            <span class="pill" id="attachCount">0 anexos</span>
+          </div>
+          <div class="small" id="dateSub">Clique no calendário para escolher o dia.</div>
+        </div>
+        <div class="status" id="statusLine">Pronto.</div>
+      </div>
+
+      <div class="editorBody">
+        <div class="noteArea">
+          <div class="boxTitle">
+            <h2>📝 Bloco de notas (sem limite)</h2>
+            <span class="hint">dica: Ctrl+P ou botão Imprimir</span>
+          </div>
+          <textarea id="noteText" placeholder="Escreva tudo aqui… sem frescura, sem limite. Isso fica salvo offline."></textarea>
+        </div>
+
+        <aside class="side">
+          <div class="boxTitle">
+            <h2>📦 Caixa de anexos (1 caixa só — do jeito certo)</h2>
+            <span class="hint">salvo no aparelho</span>
+          </div>
+          <div class="attachList" id="attachList">
+            <div class="hint">Nenhum anexo ainda. Clique em “Anexar”.</div>
+          </div>
+          <div class="hint">
+            Na impressão: anexos aparecem em espaço pequeno (miniaturas/nomes).
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="bottom">
+      <section class="panel" id="notesPanel">
+        <div class="notesPanelHead">
+          <h2>📚 Notas salvas (histórico)</h2>
+          <div class="search">
+            <input type="search" id="searchBox" placeholder="Buscar por texto ou data (ex: 2026-02)…" />
+            <span class="pill" id="totalNotes">0 notas</span>
+          </div>
+        </div>
+        <div class="notesList" id="notesList"></div>
+      </section>
+
+      <section class="panel" id="calendarPanel">
+        <div class="calHead">
+          <button class="mutedBtn" id="prevMonth">◀</button>
+          <div class="month" id="monthLabel">Mês</div>
+          <button class="mutedBtn" id="nextMonth">▶</button>
+        </div>
+        <div class="calGrid">
+          <div class="dow">
+            <div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SÁB</div>
+          </div>
+          <div class="days" id="daysGrid"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel" id="printPanel" style="display:none;">
+      <div class="printWrap">
+        <div class="printTitle">Agenda BTX</div>
+        <div class="printMeta" id="printMeta">Data:</div>
+        <div class="printNote" id="printNote"></div>
+
+        <div class="printAtt" id="printAttBox">
+          <h3>Anexos (mini)</h3>
+          <div class="attRow" id="printAttRow"></div>
+        </div>
+      </div>
+    </section>
+
+    <input id="filePicker" type="file" multiple />
+    <input id="importPicker" type="file" accept="application/json" />
+  </main>
+
+<script>
+const DB_NAME = "agenda_btx_db";
+const DB_VER  = 1;
+const STORE   = "notes";
+let db = null;
+const $ = (id)=>document.getElementById(id);
+
+const state = {
+  selectedDate: toISODate(new Date()),
+  monthCursor: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  currentNote: { date: "", text: "", attachments: [], updatedAt: 0 },
+  autosaveTimer: null,
+  knownDatesWithNotes: new Set(),
+};
+
+init();
+
+/* PWA Install */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = $("btnInstall");
+  btn.style.display = "inline-flex";
+  btn.onclick = async ()=>{
+    btn.style.display = "none";
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  };
+});
+
+/* Service Worker */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async ()=>{
+    try{
+      await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+    }catch(e){
+      console.warn("SW fail:", e);
+    }
+  });
+}
+
+async function init(){
+  await openDB();
+  hookUI();
+  await rebuildKnownDates();
+  renderCalendar();
+  await loadDate(state.selectedDate);
+  await renderNotesList();
+  setStatus("Pronto. Memória offline ativa.", "ok");
+}
+
+function hookUI(){
+  $("btnSave").addEventListener("click", saveNow);
+  $("btnAttach").addEventListener("click", ()=> $("filePicker").click());
+  $("filePicker").addEventListener("change", handleFiles);
+  $("btnPrint").addEventListener("click", printCurrent);
+  $("btnExport").addEventListener("click", exportBackup);
+  $("btnImport").addEventListener("click", ()=> $("importPicker").click());
+  $("importPicker").addEventListener("change", importBackup);
+  $("btnClearDay").addEventListener("click", clearDay);
+
+  $("prevMonth").addEventListener("click", ()=>{
+    state.monthCursor = new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth()-1, 1);
+    renderCalendar();
+  });
+  $("nextMonth").addEventListener("click", ()=>{
+    state.monthCursor = new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth()+1, 1);
+    renderCalendar();
+  });
+
+  $("noteText").addEventListener("input", ()=>{
+    state.currentNote.text = $("noteText").value;
+    scheduleAutosave();
+    setStatus("Editando… (autosave em 800ms)", "warn");
+  });
+
+  $("searchBox").addEventListener("input", debounce(async ()=>{
+    await renderNotesList($("searchBox").value.trim());
+  }, 250));
+}
+
+function scheduleAutosave(){
+  clearTimeout(state.autosaveTimer);
+  state.autosaveTimer = setTimeout(()=> saveNow(true), 800);
+}
+
+async function saveNow(isAuto=false){
+  const note = {
+    date: state.selectedDate,
+    text: $("noteText").value || "",
+    attachments: state.currentNote.attachments || [],
+    updatedAt: Date.now()
+  };
+  await putNote(note);
+  state.currentNote = note;
+
+  state.knownDatesWithNotes.add(note.date);
+  updateAttachUI();
+  renderCalendar();
+  await renderNotesList($("searchBox").value.trim());
+
+  setStatus(isAuto ? "Autosave OK." : "Salvo com sucesso.", "ok");
+}
+
+async function clearDay(){
+  const d = state.selectedDate;
+  const ok = confirm(`Limpar tudo do dia ${d}? (texto + anexos)`);
+  if(!ok) return;
+  await deleteNote(d);
+
+  state.currentNote = { date: d, text:"", attachments:[], updatedAt:0 };
+  $("noteText").value = "";
+  updateAttachUI();
+
+  await rebuildKnownDates();
+  renderCalendar();
+  await renderNotesList($("searchBox").value.trim());
+
+  setStatus("Dia limpo.", "ok");
+}
+
+async function handleFiles(ev){
+  const files = Array.from(ev.target.files || []);
+  if(!files.length) return;
+
+  setStatus("Lendo anexos…", "warn");
+
+  for(const f of files){
+    const dataUrl = await fileToDataURL(f);
+    state.currentNote.attachments.push({
+      id: cryptoRandom(),
+      name: f.name,
+      type: f.type || "application/octet-stream",
+      size: f.size || 0,
+      dataUrl
+    });
+  }
+
+  ev.target.value = "";
+  updateAttachUI();
+  await saveNow(true);
+}
+
+function updateAttachUI(){
+  const list = $("attachList");
+  const atts = state.currentNote.attachments || [];
+  $("attachCount").textContent = `${atts.length} anexos`;
+
+  if(!atts.length){
+    list.innerHTML = `<div class="hint">Nenhum anexo ainda. Clique em “Anexar”.</div>`;
+    return;
+  }
+
+  list.innerHTML = "";
+  for(const a of atts){
+    const item = document.createElement("div");
+    item.className = "attachItem";
+
+    const thumb = document.createElement("div");
+    thumb.className = "thumb";
+
+    const isImg = (a.type||"").startsWith("image/");
+    if(isImg){
+      const img = document.createElement("img");
+      img.src = a.dataUrl;
+      img.alt = a.name;
+      thumb.appendChild(img);
+    }else{
+      thumb.textContent = "DOC";
+      thumb.style.fontFamily = "var(--mono)";
+      thumb.style.color = "rgba(234,241,255,.85)";
+      thumb.style.fontSize = "12px";
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.innerHTML = `
+      <div class="name" title="${escapeHtml(a.name)}">${escapeHtml(a.name)}</div>
+      <div class="type">${escapeHtml(a.type || "arquivo")} • ${formatBytes(a.size||0)}</div>
+    `;
+
+    const actions = document.createElement("div");
+    actions.style.display="flex";
+    actions.style.gap="6px";
+
+    const btnOpen = document.createElement("button");
+    btnOpen.className="iconBtn";
+    btnOpen.textContent = "Abrir";
+    btnOpen.addEventListener("click", ()=>{
+      const w = window.open();
+      if(!w) return alert("Bloqueou popup. Permita abrir nova aba.");
+      w.document.write(`<title>${escapeHtml(a.name)}</title>`);
+      if(isImg){
+        w.document.write(`<img src="${a.dataUrl}" style="max-width:100%;height:auto;display:block;margin:0 auto">`);
+      }else{
+        w.document.write(`<iframe src="${a.dataUrl}" style="border:0;width:100%;height:100vh"></iframe>`);
+      }
+      w.document.close();
+    });
+
+    const btnDel = document.createElement("button");
+    btnDel.className="iconBtn danger";
+    btnDel.textContent = "Remover";
+    btnDel.addEventListener("click", async ()=>{
+      const ok = confirm(`Remover anexo:\n${a.name}?`);
+      if(!ok) return;
+      state.currentNote.attachments = atts.filter(x=>x.id !== a.id);
+      updateAttachUI();
+      await saveNow(true);
+    });
+
+    actions.appendChild(btnOpen);
+    actions.appendChild(btnDel);
+
+    item.appendChild(thumb);
+    item.appendChild(meta);
+    item.appendChild(actions);
+
+    list.appendChild(item);
+  }
+}
+
+async function loadDate(isoDate){
+  state.selectedDate = isoDate;
+
+  const note = await getNote(isoDate);
+  if(note){
+    state.currentNote = note;
+    $("noteText").value = note.text || "";
+  }else{
+    state.currentNote = { date: isoDate, text:"", attachments:[], updatedAt:0 };
+    $("noteText").value = "";
+  }
+
+  const dt = new Date(isoDate + "T00:00:00");
+  $("dateTitle").textContent = `📅 ${prettyDate(dt)} (${isoDate})`;
+  $("dateSub").textContent = "Tudo que você escrever aqui fica salvo no aparelho (offline).";
+
+  updateAttachUI();
+  renderCalendarSelection();
+}
+
+function renderCalendar(){
+  const m = state.monthCursor;
+  const monthName = m.toLocaleDateString("pt-BR", { month:"long", year:"numeric" });
+  $("monthLabel").textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+  const first = new Date(m.getFullYear(), m.getMonth(), 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+  const prevDays = new Date(m.getFullYear(), m.getMonth(), 0).getDate();
+
+  const grid = $("daysGrid");
+  grid.innerHTML = "";
+
+  for(let i=0;i<42;i++){
+    const cell = document.createElement("div");
+    cell.className = "day";
+
+    let dayNum, cellDate, muted=false;
+
+    if(i < startDow){
+      dayNum = prevDays - (startDow - 1 - i);
+      const d = new Date(m.getFullYear(), m.getMonth()-1, dayNum);
+      cellDate = toISODate(d);
+      muted=true;
+    }else if(i >= startDow + daysInMonth){
+      dayNum = i - (startDow + daysInMonth) + 1;
+      const d = new Date(m.getFullYear(), m.getMonth()+1, dayNum);
+      cellDate = toISODate(d);
+      muted=true;
+    }else{
+      dayNum = (i - startDow) + 1;
+      const d = new Date(m.getFullYear(), m.getMonth(), dayNum);
+      cellDate = toISODate(d);
+    }
+
+    if(muted) cell.classList.add("muted");
+
+    const top = document.createElement("div");
+    top.className = "n";
+
+    const left = document.createElement("span");
+    left.textContent = dayNum;
+
+    const right = document.createElement("span");
+    if(state.knownDatesWithNotes.has(cellDate)) {
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      right.appendChild(dot);
+    }
+
+    top.appendChild(left);
+    top.appendChild(right);
+    cell.appendChild(top);
+
+    cell.addEventListener("click", async ()=>{
+      const clicked = new Date(cellDate + "T00:00:00");
+      state.monthCursor = new Date(clicked.getFullYear(), clicked.getMonth(), 1);
+      renderCalendar();
+      await loadDate(cellDate);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  renderCalendarSelection();
+}
+
+function renderCalendarSelection(){
+  const days = Array.from(document.querySelectorAll(".day"));
+  for(const el of days) el.classList.remove("sel");
+
+  const sel = new Date(state.selectedDate + "T00:00:00");
+  if(sel.getFullYear() !== state.monthCursor.getFullYear() || sel.getMonth() !== state.monthCursor.getMonth()) return;
+
+  const dayNum = sel.getDate();
+  for(const el of days){
+    if(el.classList.contains("muted")) continue;
+    const n = el.querySelector(".n span");
+    if(n && Number(n.textContent) === dayNum){
+      el.classList.add("sel");
+      break;
+    }
+  }
+}
+
+async function renderNotesList(filter=""){
+  const list = $("notesList");
+  const notes = await getAllNotes();
+  $("totalNotes").textContent = `${notes.length} notas`;
+
+  const q = (filter || "").toLowerCase();
+  const filtered = notes.filter(n=>{
+    if(!q) return true;
+    const text = (n.text || "").toLowerCase();
+    const d = (n.date || "").toLowerCase();
+    return text.includes(q) || d.includes(q);
+  });
+
+  list.innerHTML = "";
+  if(!filtered.length){
+    list.innerHTML = `<div class="hint">Nada encontrado.</div>`;
+    return;
+  }
+
+  for(const n of filtered){
+    const card = document.createElement("div");
+    card.className = "noteCard";
+    const dt = new Date((n.date||"") + "T00:00:00");
+    const attCount = (n.attachments||[]).length;
+
+    card.innerHTML = `
+      <div class="row">
+        <div class="d">${escapeHtml(n.date)} • ${escapeHtml(prettyDate(dt))}</div>
+        <div class="tag">${attCount} anexo(s)</div>
+      </div>
+      <div class="preview">${escapeHtml((n.text||"").trim() || "— sem texto —")}</div>
+    `;
+
+    card.addEventListener("click", async ()=>{
+      const d = new Date(n.date + "T00:00:00");
+      state.monthCursor = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderCalendar();
+      await loadDate(n.date);
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+
+    list.appendChild(card);
+  }
+}
+
+function printCurrent(){
+  const dt = new Date(state.selectedDate + "T00:00:00");
+  $("printMeta").textContent = `Data: ${state.selectedDate} • ${prettyDate(dt)}`;
+
+  const text = ($("noteText").value || "").trim();
+  $("printNote").textContent = text || "— sem texto —";
+
+  const atts = state.currentNote.attachments || [];
+  const row = $("printAttRow");
+  row.innerHTML = "";
+
+  if(!atts.length){
+    $("printAttBox").style.display = "block";
+    row.innerHTML = `<div class="noPrintNote">Sem anexos.</div>`;
+  }else{
+    $("printAttBox").style.display = "block";
+    for(const a of atts.slice(0, 12)){
+      const mini = document.createElement("div");
+      mini.className = "attMini";
+      const isImg = (a.type||"").startsWith("image/");
+      mini.innerHTML = `
+        ${isImg ? `<img src="${a.dataUrl}" alt="${escapeHtml(a.name)}">` : `<img src="${placeholderDocThumb()}" alt="doc">`}
+        <div class="fn" title="${escapeHtml(a.name)}">${escapeHtml(a.name)}</div>
+      `;
+      row.appendChild(mini);
+    }
+    if(atts.length > 12){
+      const mini = document.createElement("div");
+      mini.className = "attMini";
+      mini.innerHTML = `<div class="fn">+${atts.length-12} anexos…</div>`;
+      row.appendChild(mini);
+    }
+  }
+
+  window.print();
+}
+
+/* Backup */
+async function exportBackup(){
+  setStatus("Gerando backup…", "warn");
+  const notes = await getAllNotesRaw();
+
+  const payload = {
+    app: "Agenda BTX",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    notes
+  };
+
+  const blob = new Blob([JSON.stringify(payload)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `agenda-btx-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  setStatus("Backup exportado.", "ok");
+}
+
+async function importBackup(ev){
+  const file = (ev.target.files || [])[0];
+  ev.target.value = "";
+  if(!file) return;
+
+  const ok = confirm("Importar backup vai MESCLAR com o que você já tem.\n(Se tiver mesma data, substitui.)\nContinuar?");
+  if(!ok) return;
+
+  setStatus("Importando…", "warn");
+
+  const text = await file.text();
+  let payload = null;
+  try{ payload = JSON.parse(text); }catch(e){
+    setStatus("Backup inválido (JSON quebrado).", "bad");
+    alert("Backup inválido.");
+    return;
+  }
+
+  const notes = payload?.notes;
+  if(!Array.isArray(notes)){
+    setStatus("Backup inválido (sem notes).", "bad");
+    alert("Backup inválido: sem campo notes.");
+    return;
+  }
+
+  for(const n of notes){
+    if(!n || !n.date) continue;
+    const safe = {
+      date: String(n.date).slice(0,10),
+      text: String(n.text || ""),
+      attachments: Array.isArray(n.attachments) ? n.attachments : [],
+      updatedAt: Number(n.updatedAt || Date.now())
+    };
+    await putNote(safe);
+  }
+
+  await rebuildKnownDates();
+  renderCalendar();
+  await renderNotesList($("searchBox").value.trim());
+  await loadDate(state.selectedDate);
+
+  setStatus("Importação concluída.", "ok");
+}
+
+/* IndexedDB */
+function openDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains(STORE)){
+        const st = db.createObjectStore(STORE, { keyPath:"date" });
+        st.createIndex("updatedAt", "updatedAt");
+      }
+    };
+    req.onsuccess = ()=>{ db = req.result; resolve(); };
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function tx(mode="readonly"){
+  return db.transaction(STORE, mode).objectStore(STORE);
+}
+
+function getNote(date){
+  return new Promise((resolve, reject)=>{
+    const req = tx("readonly").get(date);
+    req.onsuccess = ()=> resolve(req.result || null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function putNote(note){
+  return new Promise((resolve, reject)=>{
+    const req = tx("readwrite").put(note);
+    req.onsuccess = ()=> resolve();
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function deleteNote(date){
+  return new Promise((resolve, reject)=>{
+    const req = tx("readwrite").delete(date);
+    req.onsuccess = ()=> resolve();
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+async function getAllNotes(){
+  const notes = await getAllNotesRaw();
+  notes.sort((a,b)=> (b.date||"").localeCompare(a.date||""));
+  return notes;
+}
+
+function getAllNotesRaw(){
+  return new Promise((resolve, reject)=>{
+    const st = tx("readonly");
+    const req = st.getAll();
+    req.onsuccess = ()=> resolve(req.result || []);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+async function rebuildKnownDates(){
+  const notes = await getAllNotesRaw();
+  state.knownDatesWithNotes = new Set(notes.map(n=>n.date).filter(Boolean));
+}
+
+/* Utils */
+function toISODate(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function prettyDate(d){
+  return d.toLocaleDateString("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
+}
+
+function setStatus(msg, kind=""){
+  const el = $("statusLine");
+  el.textContent = msg;
+  el.className = "status " + (kind || "");
+}
+
+function debounce(fn, ms){
+  let t=null;
+  return (...args)=>{
+    clearTimeout(t);
+    t=setTimeout(()=> fn(...args), ms);
+  };
+}
+
+function fileToDataURL(file){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(r.result);
+    r.onerror = ()=> reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+function formatBytes(bytes){
+  if(bytes < 1024) return bytes + " B";
+  const kb = bytes/1024;
+  if(kb < 1024) return kb.toFixed(1) + " KB";
+  const mb = kb/1024;
+  return mb.toFixed(1) + " MB";
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function cryptoRandom(){
+  if(window.crypto?.randomUUID) return crypto.randomUUID();
+  return "id-" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
+function placeholderDocThumb(){
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="240" height="160">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#63a7ff" stop-opacity=".35"/>
+        <stop offset="1" stop-color="#2f6bff" stop-opacity=".15"/>
+      </linearGradient>
+    </defs>
+    <rect width="240" height="160" rx="16" fill="url(#g)"/>
+    <rect x="14" y="14" width="212" height="132" rx="12" fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.25)"/>
+    <text x="120" y="88" font-family="monospace" font-size="22" text-anchor="middle" fill="rgba(255,255,255,.85)">DOC</text>
+  </svg>`;
+  return "data:image/svg+xml;base64," + btoa(svg);
+}
+</script>
+</body>
+</html>
